@@ -1,0 +1,49 @@
+🟢 PAGE 1 — Live Overview (Main screen)
+📌 Cards (top section)
+BTC price
+ETH price
+% change (24h)
+volume spike indicator
+📈 Live Price Chart
+Candlestick (1m or 5m)
+Moving average (optional)
+
+👉 Data source:
+
+kline_1m
+⚡ Trade Stream Feed (live)
+Last 20 trades
+price + qty
+timestamp
+
+👉 Data source:
+
+trade
+🟡 PAGE 2 — Market Strength
+📊 Buy vs Sell Pressure
+Buy volume
+Sell volume
+ratio indicator
+
+👉 Data source:
+
+trade (m field = buyer/seller side)
+📉 Volume Tracker
+volume per minute
+spike detection
+🔵 PAGE 3 — Market Structure
+📦 Order Book (Depth)
+top 10 bids
+top 10 asks
+spread
+
+👉 Data source:
+
+depth
+🟣 PAGE 4 — Multi-Coin Dashboard
+
+Grid view:
+
+Coin	Price	1m Change	Volume	Trend
+BTC	...	+1.2%	high	↑
+ETH	...	-0.3%	medium	↓
