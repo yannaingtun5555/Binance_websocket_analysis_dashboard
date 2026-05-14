@@ -4,7 +4,7 @@ import time
 import sys
 
 # Configuration
-BOOTSTRAP_SERVERS = 'localhost:9092'
+BOOTSTRAP_SERVERS = 'kafka:9092'
 TOPIC_NAME = 'crypto_stream'
 NUM_PARTITIONS = 1
 REPLICATION_FACTOR = 1
