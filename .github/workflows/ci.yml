@@ -1,45 +1,69 @@
 name: Crypto Data Pipeline CI
 
 on:
-push:
-branches: [ "main" ]
-pull_request:
+  push:
+    branches: [ "main" ]
+  pull_request:
 
 jobs:
-test-build:
-runs-on: ubuntu-latest
-
-```
-steps:
-- name: Checkout repo
-  uses: actions/checkout@v4
-
-- name: Set up Python
-  uses: actions/setup-python@v4
-  with:
-    python-version: 3.10
-
-- name: Install dependencies
-  run: |
-    pip install kafka-python psycopg2 pytest
-
-- name: Run basic tests
-  run: |
-    python -c "print('CI running...')"
-
-- name: Build Docker services
-  run: |
-    docker compose build
-
-- name: Start services (Kafka, etc.)
-  run: |
-    docker compose up -d
-
-- name: Wait for Kafka
-  run: |
-    sleep 15
-
-- name: Check Kafka topics
-  run: |
-    docker exec kafka kafka-topics --list --bootstrap-server kafka:9092
-```
+  test-producer:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-test.txt
+    
+    - name: Build Docker services
+      run: |
+        docker compose build
+    
+    - name: Start services
+      run: |
+        docker compose up -d
+    
+    - name: Wait for services
+      run: |
+        sleep 20
+    
+    - name: Create Kafka topics
+      run: |
+        python tests/test_create_topics.py
+    
+    - name: Run unit tests
+      run: |
+        python -m pytest tests/producer_test.py -v
+    
+    - name: Run integration tests
+      run: |
+        python -m pytest tests/producer_test_integration.py -v
+    
+    - name: Simulate producer messages
+      run: |
+        python tests/simulate_producer.py
+    
+    - name: Test consumer parser
+      run: |
+        python tests/test_consumer_parser.py
+    
+    - name: Validate Kafka messages
+      run: |
+        python tests/validate_kafka_messages.py
+    
+    - name: Show logs on failure
+      if: failure()
+      run: |
+        docker compose logs --tail=100
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        docker compose down -v
