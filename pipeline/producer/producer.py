@@ -1,14 +1,19 @@
 # producer.py - Single producer for all topics
 import asyncio
 import json
+import os
 import websockets
 from kafka import KafkaProducer
 from datetime import datetime
 
 class UnifiedCryptoProducer:
-    def __init__(self):
+    def __init__(self, bootstrap_servers=None):
+        bootstrap_servers = bootstrap_servers or os.getenv(
+            'KAFKA_BOOTSTRAP_SERVERS',
+            'kafka:9092'
+        )
         self.producer = KafkaProducer(
-            bootstrap_servers='kafka:9092',
+            bootstrap_servers=bootstrap_servers,
             value_serializer=lambda v: json.dumps(v).encode('utf-8'),
             key_serializer=lambda v: v.encode('utf-8'),
             compression_type='gzip'
@@ -67,6 +72,10 @@ class UnifiedCryptoProducer:
             'event_time': datetime.fromtimestamp(data['E']/1000).isoformat()
         }
 
-# Run single producer
-producer = UnifiedCryptoProducer()
-asyncio.run(producer.stream_binance())
+def main():
+    producer = UnifiedCryptoProducer()
+    asyncio.run(producer.stream_binance())
+
+
+if __name__ == "__main__":
+    main()

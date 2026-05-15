@@ -1,10 +1,11 @@
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.errors import TopicAlreadyExistsError, NoBrokersAvailable
+import os
 import time
 import sys
 
 # Configuration
-BOOTSTRAP_SERVERS = 'kafka:9092'
+BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092')
 
 # Topic configurations for your three tables
 TOPICS_CONFIG = {
@@ -86,11 +87,17 @@ def describe_topic(admin_client, topic_name):
         if topic_metadata:
             print(f"\n📊 Topic Details for '{topic_name}':")
             for topic in topic_metadata:
-                print(f"  - Topic: {topic.topic}")
-                print(f"  - Partitions: {len(topic.partitions)}")
-                print(f"  - Is Internal: {topic.is_internal}")
-                for partition in topic.partitions[:2]:  # Show first 2 partitions
-                    print(f"    Partition {partition.partition}: leader={partition.leader}, replicas={len(partition.replicas)}")
+                topic_id = topic.get('topic') or topic.get('name') or topic_name
+                partitions = topic.get('partitions', [])
+                print(f"  - Topic: {topic_id}")
+                print(f"  - Partitions: {len(partitions)}")
+                print(f"  - Is Internal: {topic.get('is_internal', False)}")
+                for partition in partitions[:2]:  # Show first 2 partitions
+                    print(
+                        f"    Partition {partition.get('partition')}: "
+                        f"leader={partition.get('leader')}, "
+                        f"replicas={len(partition.get('replicas', []))}"
+                    )
     except Exception as e:
         print(f"  ⚠️ Could not describe topic '{topic_name}': {e}")
 
