@@ -80,7 +80,34 @@ services:
 #    environment:
 #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 #   restart: "no"
-      
+  streamlit-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: crypto-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-}
+      CLICKHOUSE_DB: crypto
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - crypto-network
+    restart: unless-stopped
+    volumes:
+      - ./crypto_dashboard.py:/app/crypto_dashboard.py
+      - ./config.toml:/root/.streamlit/config.toml:ro
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3      
+
 
 volumes:
   clickhouse_data:
