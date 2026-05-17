@@ -12,6 +12,12 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -71,19 +77,21 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       CLICKHOUSE_HOST: clickhouse
     command: python consumer.py
+  kafka-init:
+    build:
+      context: ./init
+      dockerfile: Dockerfile
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: "no"
 
-#     context: ./init
-#      dockerfile: Dockerfile
-#    depends_on:
-#     kafka:
-#        condition: service_healthy
-#    environment:
-#     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-#   restart: "no"
   streamlit-dashboard:
     build:
-      context: .
-      dockerfile: Dockerfile.streamlit
+      context: ./Dashboard
+      dockerfile: Dockerfile
     container_name: crypto-dashboard
     ports:
       - "8501:8501"
@@ -106,7 +114,11 @@ services:
       test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
       interval: 30s
       timeout: 10s
-      retries: 3      
+      retries: 3
+
+networks:
+  crypto-network:
+    driver: bridge   
 
 
 volumes:
